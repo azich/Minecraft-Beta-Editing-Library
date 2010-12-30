@@ -1,0 +1,20 @@
+This repository contains two types of files; libraries and utilities. Libraries provide code common to most or all of the utilities and do not actually perform any function on their own. Utilities perform some basic function and as starting point for creating your own utilities.
+
+Libraries
+editor.c - The library for parsing, serializing, and interacting with tags.
+bmp.c - A library for reading and writing basic Windows bitmap files.
+
+Utilities
+render.c - Make a top-down render of the specified world
+depth.c - Make a grayscale depth map of the specified world
+drain.c - Replace all water and ice with air for the specified world
+dump.c - Print a tree representation of the specified .dat file
+hellish.c - Replace ice and water with lava for the specified world
+melt.c - Replace ice with water for the specified world
+settime.c - Set the time of the specified level.dat
+signs.c - Print out the text and location of each sign in the specified world
+spawn.c - Set the spawn of the specified level.dat to the player location
+sweep.c - Remove all entities from the specified world
+tnt.c - Replace the specified chunk's blocks with a pattern of TNT, dirt, and redstone
+tntish.c - Replace all leaf blocks with TNT for the specified world
+trees.c - Melt all snow and ice and Cover all dirt with saplings for the specified world
