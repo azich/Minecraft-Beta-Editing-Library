@@ -312,8 +312,12 @@ char* tag_str(tag *t, char *s, size_t n) {
     break;
   case 8: //String
     *(s++) = '"';
-    if(t->length < m) s = strncpy(s,(char*)t->data,t->length);
-    else s = strncpy(s,(char*)t->data,m);
+    if(t->length < m) {
+      strncpy(s,(char*)t->data,t->length);
+      s += t->length;
+    } else {
+      strncpy(s,(char*)t->data,m); s += m;
+    }
     *(s++) = '"'; break;
   case 9: //List
   case 10: //Compound
