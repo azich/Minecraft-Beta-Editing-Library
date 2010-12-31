@@ -19,3 +19,11 @@ tnt.c - Replace the specified chunk's blocks with a pattern of TNT, dirt, and re
 tntish.c - Replace all leaf blocks with TNT for the specified world
 trees.c - Melt all snow and ice and Cover all dirt with saplings for the specified world
 slices.sh - A shell script which uses render.c to make an MRI of the specified world
+
+Using
+editor.c has a dependency on zlib for reading the chunks and level.dat
+
+To compile, use: `gcc -lz -o <executable> <source.c>`
+
+All utilities take 1 or more arguments and have a usage if the wrong number of
+arguments are specified. So use `./utility` to see how to use it.
