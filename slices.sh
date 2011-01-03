@@ -5,6 +5,68 @@ if [ $# -ne 3 ]; then
     exit 2
 fi
 
+cat > $3/viewer.html <<EOF
+<html>
+<head>
+<title>Minecraft MRI</title>
+<style type="text/css">
+#loading {
+  background-color: black;
+  position: fixed;
+  padding: 5px;
+  color: white;
+  z-index: 1000;
+  left: 5px;
+  top: 5px;
+}
+</style>
+<script type="text/javascript">
+window.addEventListener('load',function() {
+    var loading = document.getElementById('loading');
+    var imgs = []; var n = 0; var pos = 0;
+    for(var i = 0; i < 128; i++) {
+      var img = document.createElement('img');
+      img.style.position = "absolute";
+      img.style.display = "none";
+      img.style.left = "0px";
+      img.style.top = "0px";
+      var pad = ""+i;
+      loading.innerHTML = (++n > 0) ? "Loading: "+n+" more" : "Viewing slice "+pos;
+      while(pad.length < 3) pad = "0"+pad;
+      img.onload = function() {
+        loading.innerHTML = (--n > 0) ? "Loading: "+n+" more" : "Viewing slice "+pos;
+      };
+      img.src = "slice"+pad+".png?"+Math.random();
+      document.body.appendChild(img);
+      imgs.push(img);
+    }
+    function show(n) {
+      imgs[n].style.display = "block";
+      for(var i = 0; i < imgs.length; i++) {
+        if(i != n) imgs[i].style.display = "none";
+      }
+      loading.innerHTML = "Viewing slice "+n;
+    }
+    var pos = 0; var size = 512;
+    show(pos);
+    window.addEventListener('keydown',function(e) {
+        if(e.keyCode == 38) {
+          e.preventDefault();
+          if(pos < 127) show(++pos);
+        } else if(e.keyCode == 40) {
+          e.preventDefault();
+          if(pos > 0) show(--pos);
+        }
+      },false);
+  },false);
+</script>
+</head>
+<body>
+<div id="loading"></div>
+</body>
+</html>
+EOF
+
 ./render $1 $2 $3/slice.bmp 0 0; sips -s format png $3/slice.bmp --out $3/slice000.png
 ./render $1 $2 $3/slice.bmp 1 1; sips -s format png $3/slice.bmp --out $3/slice001.png
 ./render $1 $2 $3/slice.bmp 2 2; sips -s format png $3/slice.bmp --out $3/slice002.png
