@@ -2,7 +2,7 @@
 
 int main(int argc, char *argv[]) {
   if(argc != 2) {
-    printf("Usage: %s [world]\n",argv[0]);
+    printf("Usage: %s [.dat]\n",argv[0]);
     return 2;
   }
   gzFile *f = gzopen(argv[1],"r");

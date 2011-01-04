@@ -108,6 +108,7 @@ int main(int argc, char *argv[]) {
 	      g = 0;
 	    }
 	  }
+	  if(y < 0) y = 0;
 	  color c; c.a = 1.0; c.r = c.g = c.b = 1.0-2.0*y;
 	  ctop(bmp_get(bmp,16*(b.maxZ-sz+1)-z-1,16*(sx-b.minX)+x),&c);
 	}
