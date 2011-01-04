@@ -101,7 +101,7 @@ int dbase36(const char *buf) {
 char* mkpath(char *p, int x, int z) {
   p = mkb64(p,((x%64)+64)%64,((z%64)+64)%64,"/");
   p = stpcpy(p,"/c."); p = mkb64(p,x,z,".");
-  p = stpcpy(p,".dat"); *(p++) = 0; return p;
+  p = stpcpy(p,".dat"); return p;
 }
 
 char* mkb64(char *p, int x, int z, const char *d) {
