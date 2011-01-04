@@ -18,6 +18,7 @@ sweep.c - Remove all entities from the specified world
 tnt.c - Replace the specified chunk's blocks with a pattern of TNT, dirt, and redstone
 tntish.c - Replace all leaf blocks with TNT for the specified world
 trees.c - Melt all snow and ice and Cover all dirt with saplings for the specified world
+ladder.c - Create a ladder at the specified coordinates and oritentation
 slices.sh - A shell script which uses render.c to make an MRI of the specified world
 
 Using
