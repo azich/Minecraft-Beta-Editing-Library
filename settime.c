@@ -5,7 +5,7 @@ int main(int argc, char *argv[]) {
     printf("Usage: %s [level.dat] [time]\n",argv[0]);
     return 2;
   }
-  long long ntime = strtoll(argv[1],(char**)NULL,10);
+  long long ntime = strtoll(argv[2],(char**)NULL,10);
   gzFile *f = gzopen(argv[1],"r");
   if(!f) {
     printf("Cound not open file\n");
