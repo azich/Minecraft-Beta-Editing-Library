@@ -67,15 +67,21 @@ int bounds(ibounds *b, const char *wpath) {
   return f;
 }
 
+char gethalf(char *data, int n) {
+  if(n % 2) return data[n/2]&0x0f;
+  return data[n/2]&0xf0>>4;
+}
+
 int main(int argc, char *argv[]) {
   if(argc < 4 || argc > 6) {
     printf("Usage %s [world] [colors] [bmp] [ [ [bottom] ] [top] ]\n",argv[0]);
     return 2;
   }
-  color COLORS[256]; color *cp = COLORS; int i;
+  color COLORS[256*16]; color *cp = COLORS; int i;
   FILE *mf = fopen(argv[2],"r"); if(!mf) return 3;
-  for(i = 0; i < 256; i++) {
+  for(i = 0; i < 256*16; i++) {
     if(!fscanf(mf,"%f\t%f\t%f\t%f\n",&(cp->r),&(cp->g),&(cp->b),&(cp->a))) {
+      printf("Failed to read colors file\n");
       return 3;
     }
     cp++;
@@ -108,16 +114,22 @@ int main(int argc, char *argv[]) {
       tag_parse(&t,f);
       gzclose(f);
       if(!t.data) continue;
-      tag *tblocks;
+      tag *tblocks; tag *tdata;
       if(!tag_find(&t,&tblocks,1,6,"Blocks")) {
 	tag_destroy(&t); continue;
       }
+      if(!tag_find(&t,&tdata,1,4,"Data")) {
+	tag_destroy(&t); continue;
+      }
       char *blocks = (char*)(tblocks->data);
+      char *data = (char*)(tdata->data);
       for(z = 0; z < 16; z++) {
 	for(x = 0; x < 16; x++) {
 	  color c; c.r = c.g = c.b = c.a = 0.0;
+	  char *blocks = (char*)(tblocks->data)+((x*16)+z)*128;
+	  char *data = (char*)(tdata->data)+((x*16)+z)*64;
 	  for(y = b.minY; y <= b.maxY; y++) {
-	    capply(&c,COLORS+blocks[((x*16)+z)*128+y]);
+	    capply(&c,COLORS+blocks[y]*16+gethalf(data,y));
 	  }
 	  ctop(bmp_get(bmp,16*(b.maxZ-sz+1)-z-1,16*(sx-b.minX)+x),&c);
 	}
