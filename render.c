@@ -68,8 +68,8 @@ int bounds(ibounds *b, const char *wpath) {
 }
 
 char gethalf(char *data, int n) {
-  if(n % 2) return data[n/2]&0x0f;
-  return data[n/2]&0xf0>>4;
+  if(n%2==0) return data[n/2]&0x0f;
+  return (data[n/2]&0xf0)>>4;
 }
 
 int main(int argc, char *argv[]) {
@@ -121,13 +121,11 @@ int main(int argc, char *argv[]) {
       if(!tag_find(&t,&tdata,1,4,"Data")) {
 	tag_destroy(&t); continue;
       }
-      char *blocks = (char*)(tblocks->data);
-      char *data = (char*)(tdata->data);
       for(z = 0; z < 16; z++) {
 	for(x = 0; x < 16; x++) {
 	  color c; c.r = c.g = c.b = c.a = 0.0;
-	  char *blocks = (char*)(tblocks->data)+((x*16)+z)*128;
-	  char *data = (char*)(tdata->data)+((x*16)+z)*64;
+	  unsigned char *blocks = (char*)(tblocks->data)+((x*16)+z)*128;
+	  unsigned char *data = (char*)(tdata->data)+((x*16)+z)*64;
 	  for(y = b.minY; y <= b.maxY; y++) {
 	    capply(&c,COLORS+blocks[y]*16+gethalf(data,y));
 	  }
