@@ -67,11 +67,6 @@ int bounds(ibounds *b, const char *wpath) {
   return f;
 }
 
-char gethalf(char *data, int n) {
-  if(n%2==0) return data[n/2]&0x0f;
-  return (data[n/2]&0xf0)>>4;
-}
-
 int main(int argc, char *argv[]) {
   if(argc < 4 || argc > 6) {
     printf("Usage %s [world] [colors] [bmp] [ [ [bottom] ] [top] ]\n",argv[0]);
@@ -126,8 +121,11 @@ int main(int argc, char *argv[]) {
 	  color c; c.r = c.g = c.b = c.a = 0.0;
 	  unsigned char *blocks = (char*)(tblocks->data)+((x*16)+z)*128;
 	  unsigned char *data = (char*)(tdata->data)+((x*16)+z)*64;
-	  for(y = b.minY; y <= b.maxY; y++) {
-	    capply(&c,COLORS+blocks[y]*16+gethalf(data,y));
+	  for(y = b.maxY; y >= b.minY; y--) {
+	    if(COLORS[blocks[y]*16+getnibble(data,y)].a == 1.0) break;
+	  }
+	  for(; y <= b.maxY; y++) {
+	    capply(&c,COLORS+blocks[y]*16+getnibble(data,y));
 	  }
 	  ctop(bmp_get(bmp,16*(b.maxZ-sz+1)-z-1,16*(sx-b.minX)+x),&c);
 	}

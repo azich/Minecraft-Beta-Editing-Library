@@ -20,6 +20,8 @@ const char B36[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 unsigned long long htonll(unsigned long long hll);
 unsigned long long ntohll(unsigned long long hll);
+char getnibble(char *data, int n);
+void setnibble(char *data, int n, char c);
 int ebase36(char *buf, int n);
 int dbase36(const char *buf);
 char* mkpath(char *p, int x, int z);
@@ -74,6 +76,23 @@ unsigned long long ntohll(unsigned long long hll) {
   return x.x;
 }
 
+char getnibble(char *data, int n) {
+  if(n % 2 == 0) {
+    return data[n/2] & 0x0f;
+  } else {
+    return (data[n/2] & 0xf0) >> 4;
+  }
+}
+
+void setnibble(char *data, int n, char c) {
+  if(n % 2 == 0) {
+    data[n/2] &= 0xf0;
+    data[n/2] |= c&0x0f;
+  } else {
+    data[n/2] &= 0x0f;
+    data[n/2] |= c<<4;
+  }
+}
 
 int ebase36(char *buf, int n) {
   if(n < 0) {
