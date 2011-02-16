@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
 	  color c; c.r = c.g = c.b = c.a = 0.0;
 	  unsigned char *blocks = (char*)(tblocks->data)+((x*16)+z)*128;
 	  unsigned char *data = (char*)(tdata->data)+((x*16)+z)*64;
-	  for(y = b.maxY; y >= b.minY; y--) {
+	  for(y = b.maxY; y > b.minY; y--) {
 	    if(COLORS[blocks[y]*16+getnibble(data,y)].a == 1.0) break;
 	  }
 	  for(; y <= b.maxY; y++) {
