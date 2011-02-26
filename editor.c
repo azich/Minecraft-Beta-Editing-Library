@@ -5,6 +5,12 @@
 #include <dirent.h>
 #include <zlib.h>
 
+typedef struct region region;
+
+struct region {
+  z_stream strm;
+};
+
 typedef struct tag tag;
 
 struct tag {
@@ -26,11 +32,13 @@ int ebase36(char *buf, int n);
 int dbase36(const char *buf);
 char* mkpath(char *p, int x, int z);
 char* mkb64(char *p, int x, int z, const char *d);
+size_t region_read(region* r, char *d, size_t n);
+size_t region_write(region* r, char *d, size_t n);
 void tag_destroy(tag *t);
-void tag_read(tag *t, gzFile *f);
-void tag_write(tag *t, gzFile *f);
-void tag_parse(tag *t, gzFile *f);
-void tag_serial(tag *t, gzFile *f);
+void tag_read(tag *t, region *r);
+void tag_write(tag *t, region *r);
+void tag_parse(tag *t, region *r);
+void tag_serial(tag *t, region *r);
 char* tag_str(tag *t, char *s, size_t n);
 int tag_find(tag *t, tag **res, int count, short nlen, char *name);
 void tag_tree(tag *t);
@@ -129,6 +137,22 @@ char* mkb64(char *p, int x, int z, const char *d) {
   return index(p,0);
 }
 
+size_t region_read(region* r, char *d, size_t n) {
+  int ret; char space[64];
+  r.s.avail_out = n;
+  r.s.next_out = d;
+  while(r.s.avail_out > 0) {
+    r.s.avail_in = fread(space, 1, 64, r.f);
+    if(ferror(r.f)) {
+      
+    }
+  }
+}
+
+size_t region_write(region* r, char *d, size_t n) {
+  
+}
+
 void tag_destroy(tag *t) {
   if(t == NULL) return; int i;
   if(t->type == 9 || t->type == 10) {
@@ -140,7 +164,7 @@ void tag_destroy(tag *t) {
   if(t->data != NULL) free(t->data);
 }
 
-void tag_read(tag *t, gzFile *f) {
+void tag_read(tag *t, region *r) {
   unsigned char c;
   unsigned short s;
   unsigned int i;
@@ -148,50 +172,50 @@ void tag_read(tag *t, gzFile *f) {
   switch(t->type) {
   case 1: //Byte
     t->data = malloc(1);
-    gzread(f,t->data,1);
+    region_read(r,t->data,1);
     t->length = 0; break;
   case 2: //Short
     t->data = malloc(2);
-    gzread(f,t->data,2);
+    region_read(r,t->data,2);
     *(short*)t->data = ntohs(*(short*)t->data);
     t->length = 0; break;
   case 3: //Int
     t->data = malloc(4);
-    gzread(f,t->data,4);
+    region_read(r,t->data,4);
     *(int*)t->data = ntohl(*(int*)t->data);
     t->length = 0; break;
   case 4: //Long (Long)
     t->data = malloc(8);
-    gzread(f,t->data,8);
+    region_read(r,t->data,8);
     *(long long*)t->data = htonll(*(long long*)t->data);
     t->length = 0; break;
   case 5: //Float
     t->data = malloc(4);
-    gzread(f,t->data,4);
+    region_read(r,t->data,4);
     *(int*)t->data = ntohl(*(int*)t->data);
     t->length = 0; break;
   case 6: //Double
     t->data = malloc(8);
-    gzread(f,t->data,8);
+    region_read(r,t->data,8);
     *(long long*)t->data = htonll(*(long long*)t->data);
     t->length = 0; break;
   case 7: //Bytes
-    gzread(f,&i,4);
+    region_read(r,&i,4);
     i = ntohl(i); t->length = i;
     t->data = i>0 ? malloc(i) : NULL;
-    gzread(f,t->data,i);
+    region_read(r,t->data,i);
     break;
   case 8: //String
-    gzread(f,&s,2);
+    region_read(r,&s,2);
     s = ntohs(s); t->length = s;
     t->data = s>0 ? malloc(s+1) : NULL;
     if(!t->data) break;
-    gzread(f,t->data,s);
+    region_read(r,t->data,s);
     *((char*)(t->data)+s) = 0;
     break;
   case 9: //List
-    gzread(f,&c,1);
-    gzread(f,&i,4);
+    region_read(r,&c,1);
+    region_read(r,&i,4);
     i = ntohl(i);
     t->length = i;
     if(i == 0) {
@@ -207,7 +231,7 @@ void tag_read(tag *t, gzFile *f) {
       ts->nlen = 0;
       ts->name = NULL;
       ts->parent = t;
-      tag_read(ts,f);
+      tag_read(ts,r);
       ts++;
     }
     break;
@@ -215,7 +239,7 @@ void tag_read(tag *t, gzFile *f) {
     t->length = 0; ts = NULL;
     while(t->length == 0 || (ts+t->length-1)->type != 0) {
       ts = realloc(ts,sizeof(tag)*(t->length+1));
-      (ts+t->length)->parent = t; tag_parse(ts+t->length++,f);
+      (ts+t->length)->parent = t; tag_parse(ts+t->length++,r);
     }
     if(t->length > 0) {
       t->length--;
@@ -225,7 +249,7 @@ void tag_read(tag *t, gzFile *f) {
   }
 }
 
-void tag_write(tag *t, gzFile *f) {
+void tag_write(tag *t, region *r) {
   unsigned char c;
   unsigned short s;
   unsigned int i;
@@ -233,78 +257,78 @@ void tag_write(tag *t, gzFile *f) {
   tag *ts; tag q;
   switch(t->type) {
   case 1: //Byte
-    gzwrite(f,t->data,1); break;
+    region_write(r,t->data,1); break;
   case 2: //Short
     s = htons(*(short*)t->data);
-    gzwrite(f,&s,2); break;
+    region_write(r,&s,2); break;
   case 3: //Int
     i = htonl(*(int*)t->data);
-    gzwrite(f,&i,4); break;
+    region_write(r,&i,4); break;
   case 4: //Long (Long)
     l = htonll(*(long long*)t->data);
-    gzwrite(f,&l,8); break;
+    region_write(r,&l,8); break;
   case 5: //Float
     i = htonl(*(int*)t->data);
-    gzwrite(f,&i,4); break;
+    region_write(r,&i,4); break;
   case 6: //Double
     l = htonll(*(long long*)t->data);
-    gzwrite(f,&l,8); break;
+    region_write(r,&l,8); break;
   case 7: //Bytes
     i = htonl(t->length);
-    gzwrite(f,&i,4);
-    gzwrite(f,t->data,t->length);
+    region_write(r,&i,4);
+    region_write(r,t->data,t->length);
     break;
   case 8: //String
     s = htons(t->length);
-    gzwrite(f,&s,2);
-    gzwrite(f,t->data,t->length);
+    region_write(r,&s,2);
+    region_write(r,t->data,t->length);
     break;
   case 9: //List
     ts = (tag*)t->data;
     c = ts->type;
-    gzwrite(f,&c,1);
+    region_write(r,&c,1);
     i = t->length;
     i = htonl(t->length);
-    gzwrite(f,&i,4);
+    region_write(r,&i,4);
     ts = t->data;
     i = t->length;
     while(i-- > 0) {
-      tag_write(ts++,f);
+      tag_write(ts++,r);
     }
     break;
   case 10: //Compound
     ts = t->data;
     i = t->length;
     while(i-- > 0) {
-      tag_serial(ts++,f);
+      tag_serial(ts++,r);
     }
     q.type = 0;
-    tag_serial(&q,f);
+    tag_serial(&q,r);
   }
 }
 
-void tag_parse(tag *t, gzFile *f) {
+void tag_parse(tag *t, region *r) {
   unsigned char c;
-  gzread(f,&c,1);
+  region_read(r,&c,1);
   t->type = c;
   if(c == 0) return;
-  gzread(f,&(t->nlen),2);
+  region_read(r,&(t->nlen),2);
   t->nlen = ntohs(t->nlen);
   t->name = malloc(t->nlen+1);
-  gzread(f,t->name,t->nlen);
+  region_read(r,t->name,t->nlen);
   t->name[t->nlen] = 0;
-  tag_read(t,f);
+  tag_read(t,r);
 }
 
-void tag_serial(tag *t, gzFile *f) {
+void tag_serial(tag *t, region *r) {
   unsigned char c = t->type;
   unsigned short s;
-  gzwrite(f,&c,1);
+  region_write(r,&c,1);
   if(c == 0) return;
   s = htons(t->nlen);
-  gzwrite(f,&s,2);
-  gzwrite(f,t->name,t->nlen);
-  tag_write(t,f);
+  region_write(r,&s,2);
+  region_write(r,t->name,t->nlen);
+  tag_write(t,r);
 }
 
 char* tag_str(tag *t, char *s, size_t n) {
