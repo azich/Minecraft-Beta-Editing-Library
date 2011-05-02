@@ -41,7 +41,7 @@ void bmp_load(bmp *b, FILE *f) {
 bmp* bmp_create(unsigned int w, signed int h) {
   bmp *b = malloc(sizeof(bmp));
   b->w = w; b->h = h; b->wb = 3*w+(4-((3*w)%4))%4;
-  b->data = malloc(b->wb*b->h);
+  b->data = malloc(b->wb*b->h); bzero(b->data,b->wb*b->h);
   return b;
 }
 
