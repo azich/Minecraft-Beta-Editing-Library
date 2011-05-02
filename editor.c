@@ -432,7 +432,7 @@ int chunk_close(chunk *r) {
   if(r == NULL) return 0;
   switch(r->ctype) {
   case 0x21:
-    gzclose(r->g);
+    return gzclose(r->g);
   case 0x02:
     /*
     if(r->mode == 'r') {
