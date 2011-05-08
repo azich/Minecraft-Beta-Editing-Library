@@ -125,6 +125,10 @@ int main(int argc, char *argv[]) {
   rc.b = b; rc.bmp = bmp_create(16*(b.maxZ-b.minZ+1),16*(b.maxX-b.minX+1));
   world_foreach(w,&rc,render);
   FILE *bf = fopen(argv[3],"w");
+  if(!bf) {
+    printf("Failed to open bmp\n");
+    return 5;
+  }
   bmp_save(bf,rc.bmp);
   bmp_destroy(rc.bmp);
   fclose(bf);

@@ -5,14 +5,14 @@ int main(int argc, char *argv[]) {
     printf("Usage: %s [.dat]\n",argv[0]);
     return 2;
   }
-  gzFile *f = gzopen(argv[1],"r");
+  chunk *f = chunk_opengz(argv[1],"r");
   if(!f) {
     printf("Cound not open file\n");
     return 3;
   }
   tag t; t.data = NULL;
   tag_parse(&t,f);
-  gzclose(f);
+  chunk_close(f);
   if(!t.data) {
     printf("No data found\n");
     return 5;

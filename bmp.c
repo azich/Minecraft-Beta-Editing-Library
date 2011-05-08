@@ -13,14 +13,6 @@ typedef struct {
   unsigned char r;
 } pixel;
 
-typedef struct {
-  unsigned int x; unsigned int y;
-} coord;
-
-typedef struct {
-  coord pt; coord off;
-} region;
-
 void bmp_load(bmp *b, FILE *f);
 bmp* bmp_create(unsigned int w, signed int h);
 void bmp_save(FILE *f, bmp *b);
